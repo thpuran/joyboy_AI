@@ -1,77 +1,100 @@
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-# Firefox options
+# ------------------------------
+# Configure Firefox Driver
+# ------------------------------
 options = Options()
-options.add_argument("--headless")  # Optional: run without opening browser window
+options.add_argument("--start-maximized")
 
-# Start driver
 driver = webdriver.Firefox(options=options)
+wait = WebDriverWait(driver, 20)
 
-# STEP 1: Open Goethe website
-driver.get("https://www.goethe.de/en/index.html")
-time.sleep(3)
-
-# STEP 2: Accept cookies
-try:
-    accept_button = driver.find_element(By.XPATH, "//button[contains(text(),'Accept All')]")
-    accept_button.click()
-    print("[✔] Cookies accepted.")
-except:
-    print("[!] Cookie popup not found.")
-
-# STEP 3: Click on “Exams”
+# ------------------------------
+# Step 1: Open Exam Page
+# ------------------------------
 driver.get("https://www.goethe.de/ins/in/en/spr/prf.html")
 time.sleep(2)
 
-# STEP 4: Select B1 Exam
-driver.get("https://www.goethe.de/ins/in/en/spr/prf/gzb1.cfm")
+# ------------------------------
+# Step 2: Accept Cookies
+# ------------------------------
+try:
+    accept_cookies = wait.until(EC.element_to_be_clickable((By.ID, "gdpr-cookie-accept")))
+    accept_cookies.click()
+    print("✅ Cookies accepted.")
+except:
+    print("⚠️ Cookie accept button not found.")
+
+# ------------------------------
+# Step 3: Click B1 Exam
+# ------------------------------
+try:
+    b1_exam = wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "B1")))
+    b1_exam.click()
+    print("✅ B1 exam clicked.")
+except:
+    print("⚠️ B1 exam link not found.")
 time.sleep(2)
 
-# STEP 5: Click on ‘Details’ of a date
+# ------------------------------
+# Step 4: Click on "Details"
+# ------------------------------
 try:
-    details_button = driver.find_element(By.XPATH, "//a[contains(text(),'DETAILS')]")
+    details_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(),'DETAILS')]")))
     details_button.click()
-    print("[✔] Exam date selected.")
+    print("✅ Details button clicked.")
 except:
-    print("[!] Couldn't click on details button.")
-
-time.sleep(3)
-
-# STEP 6: Click "Select Modules"
-try:
-    select_modules = driver.find_element(By.XPATH, "//a[contains(text(),'SELECT MODULES')]")
-    select_modules.click()
-    print("[✔] Proceeded to module selection.")
-except:
-    print("[!] SELECT MODULES not found.")
-
-# STEP 7: Click "Book for myself"
+    print("⚠️ Details button not found.")
 time.sleep(2)
+
+# ------------------------------
+# Step 5: Click "Select Modules"
+# ------------------------------
 try:
-    book_button = driver.find_element(By.XPATH, "//button[contains(text(),'BOOK FOR MYSELF')]")
-    book_button.click()
+    select_modules = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(),'SELECT MODULES')]")))
+    select_modules.click()
+    print("✅ Select Modules clicked.")
 except:
-    print("[!] BOOK FOR MYSELF not found.")
+    print("⚠️ Select Modules not found.")
+time.sleep(2)
 
-# STEP 8: Enter login credentials
-time.sleep(3)
+# ------------------------------
+# Step 6: Click "Book for Myself"
+# ------------------------------
 try:
-    email_input = driver.find_element(By.ID, "username")
-    password_input = driver.find_element(By.ID, "password")
-
-    email_input.send_keys("your_email@example.com")
-    password_input.send_keys("your_password")
-
-    login_button = driver.find_element(By.ID, "login-button")
-    login_button.click()
-    print("[✔] Login submitted.")
+    book_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Book for myself')]")))
+    book_btn.click()
+    print("✅ Book for Myself clicked.")
 except:
-    print("[!] Login page not loaded properly.")
+    print("⚠️ Book for Myself button not found.")
+time.sleep(2)
 
+# ------------------------------
+# Step 7: Login Page - Fill Email & Password
+# ------------------------------
+try:
+    email_input = wait.until(EC.presence_of_element_located((By.ID, "login_email")))
+    password_input = driver.find_element(By.ID, "login_password")
+    
+    email_input.send_keys("your-email@example.com")  # Replace with your email
+    password_input.send_keys("your-password")        # Replace with your password
+    
+    print("✅ Credentials entered.")
+    
+    # Click Login
+    login_btn = driver.find_element(By.XPATH, "//button[@type='submit']")
+    login_btn.click()
+    print("✅ Login button clicked.")
+except:
+    print("⚠️ Login inputs or button not found.")
+
+# ------------------------------
 # Done
+# ------------------------------
 time.sleep(5)
 driver.quit()
-print("✅ Automation complete.")
